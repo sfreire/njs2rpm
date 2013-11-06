@@ -1,0 +1,56 @@
+%define dist %{expand:%%(/usr/lib/rpm/redhat/dist.sh --dist)}
+%define _rpmconfigdir %{_libdir}/rpm
+
+$PROVIDES
+
+Name: nodejs-$PREFIX$NAME
+Version: $VERSION
+Release: $RELEASE%{?dist}
+Summary: $SUMMARY
+License: $LICENSE
+Group: Development/Libraries
+URL: $PROJECTURL
+Source0: http://registry.npmjs.org/$NAME/-/$NAME-$VERSION.tgz
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
+
+$REQUIRES
+BuildRequires: nodejs-devel
+BuildRequires: nodejs-packaging
+
+%description
+$DESCRIPTION
+
+%prep
+%setup -q -n package
+
+$BUNDLESNIPPET
+
+%build
+#nothing to do
+
+%install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{nodejs_sitelib}/$NAME
+cp -pfr $FILESTOCOPY %{buildroot}%{nodejs_sitelib}/$NAME > /dev/null 2>&1 || :
+#if any binaries are included, symlink them to bindir here
+mkdir -p %{buildroot}%{_bindir}
+$BINSNIPPET
+$SYMLINKDEPS
+
+%check
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root,-)
+%{nodejs_sitelib}/$NAME
+$FILESBINSNIPPET
+
+%doc $DOCFILES
+
+%changelog
+* $DATE Sergio Freire <sergio-s-freire@ptinovacao.pt> - $VERSION-$RELEASE
+- first release
+

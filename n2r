@@ -1,0 +1,215 @@
+#!/bin/bash
+
+# Licensed under LGPL v2.1 license
+# Copyright Sergio Freire <sergio-s-freire@ptinovacao.pt>
+# More info at https://github.com/sfreire/n2r
+
+MYVERSION=1.0.0
+echo -e "N2R v$MYVERSION - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>"
+
+SCRIPTNAME=$(basename $0)
+# obtain install directory, resolving symlinks if necessary
+SCRIPTPATH=$(dirname $(readlink "${BASH_SOURCE[0]}" 2> /dev/null ) 2> /dev/null)
+if [ "$SCRIPTPATH" == "" ]
+then
+ SCRIPTPATH=$( cd "$( dirname "${BASH_SOURCE[0]}")" && pwd )
+fi 
+
+
+# build SPEC from template
+function build_spec {
+ SPECTEMPLATE=$( cat $1 | while read -r line; do
+        eval echo "\"$line\""
+ done
+)
+}
+
+function show_help {
+ echo -e " Usage: $SCRIPTNAME <name> <version> <release> <single|bundle> <spec|rpm> [template]"
+ echo -e "\tname: NodeJS module name"
+ echo -e "\tversion: module version in X.Y.Z format"
+ echo -e "\trelease: RPM's release"
+ echo -e "\tsingle: just package the module and not its dependencies (RH behaviour)"
+ echo -e "\tbundle: bundle all dependencies inside the module"
+ echo -e "\tspec: just create the .spec file"
+ echo -e "\trpm: create the .spec and the RPM file(s)"
+ echo -e "\ttemplate (optional): RPM .spec template to use; by default, provided default.n2r"
+ echo -e " Examples:"
+ echo -e "\t$SCRIPTNAME uglify-js 2.4.1 1 single rpm"
+ echo -e "\t$SCRIPTNAME uglify-js 2.4.1 1 bundle rpm"
+ echo -e "\t$SCRIPTNAME express 3.4.4 1 bundle spec mytemplate.n2r"
+}
+
+if [ $# -lt 5 ] || [ $# -gt 6 ]
+then
+	show_help
+        exit 1
+fi
+
+if [ $# -eq 5 ]
+then
+ # default spec template
+ TEMPLATEFILE="$SCRIPTPATH/default.n2r"
+else
+ TEMPLATEFILE=$6
+fi
+
+if [ ! -e $TEMPLATEFILE ]
+then
+ echo "error: RPM .spec template file $TEMPLATEFILE not found!"
+ exit 1
+else
+ echo "using RPM .spec template file $TEMPLATEFILE ..."
+fi
+
+NAME=$1
+VERSION=$2
+RELEASE=$3
+TYPE=$4
+if [ "$TYPE" != "single" ] && [ "$TYPE" != "bundle" ]
+then
+	echo "error: must choose between single or bundle!"
+	exit 1
+fi
+OUTPUT=$5
+if [ "$OUTPUT" != "spec" ] && [ "$OUTPUT" != "rpm" ]
+then
+	echo "error: must choose between spec or rpm!"
+	exit 1
+fi
+
+
+BUNDLESNIPPET=""
+if [ "$TYPE" == "single" ]
+then 
+ BUNDLESNIPPET="rm -rf node_modules"
+fi
+
+TGZ=$NAME-$VERSION.tgz
+URL=http://registry.npmjs.org/$NAME/-/$TGZ
+RPMTOPDIR=$(cat ~/.rpmmacros 2> /dev/null| grep _topdir | cut -d " " -f 2 2> /dev/null)
+#RPMTOPDIR=$(rpm --eval "%_topdir")
+if [ "$RPMTOPDIR" == "" ]
+then
+ RPMTOPDIR=$(pwd)/rpmbuild
+fi
+
+SPECSDIR=$RPMTOPDIR/SPECS
+SOURCESDIR=$RPMTOPDIR/SOURCES
+SPECFILE="nodejs-$NAME.spec"
+DATE=$(date +"%a %b %d %Y")
+#FILESTOCOPY="lib *.js *.json"
+#PACKAGER="Sergio Freire <sergio-s-freire@ptinovacao.pt>"
+
+#rm -rf $RPMTOPDIR
+mkdir -p $RPMTOPDIR/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+
+# remove tgz, if necessary, and get the source from upstream
+rm -f $TGZ
+wget -q -c $URL
+
+#FILESTOCOPY=$(tar tlf $TGZ | egrep -E "^package/\w+/$" |grep -v node_modules  | cut -d "/" -f 2 | tr "\n" " ")
+FILESTOCOPY=$(tar tlf $TGZ 2> /dev/null | egrep -E "^package/\w+/"  | cut -d "/" -f 2 | sort | uniq | tr "\n" " ")
+FILESTOCOPY="$FILESTOCOPY *.json *.md *.js *.txt"
+JSONDESC=$(tar -xOzf $TGZ package/package.json)
+LICENSEFILE=$(tar tlf $TGZ 2> /dev/null| egrep -i "^package/license")
+LICENSEDESC=$(tar -xOzf $TGZ $LICENSEFILE 2> /dev/null)
+
+DOCFILES=$(tar tlf $TGZ 2> /dev/null | egrep -i "readme|license|\.md|\.txt" | egrep -v "/.*/" | cut -d "/" -f 2 | tr "\n" " ")
+tar tlf $TGZ | egrep -i "\.c$|.cpp$|\.h$"  > /dev/null 2>&1
+NATIVE=$?
+if [ $NATIVE -eq 0 ]
+then
+	echo "error: building native modules is not supported!"
+	exit 1
+fi
+
+tar tlf $TGZ | egrep  "^package/bin/"  > /dev/null 2>&1
+HASBINARIES=$?
+BINSNIPPET=""
+FILESBINSNIPPET=""
+if [ $HASBINARIES -eq 0 ]
+then
+#	FILESTOCOPY="$FILESTOCOPY bin"
+	BINARIES=$( tar tlf $TGZ 2> /dev/null | egrep  "^package/bin/" 2> /dev/null)
+	BINSNIPPET=$(echo "$BINARIES" | while read -r binary
+	do
+	  echo ln -s %{nodejs_sitelib}/$NAME/bin/$(basename $binary) %{buildroot}%{_bindir}/$(basename $binary)
+	done )
+	FILESBINSNIPPET=$(echo "$BINARIES" | while read -r binary
+	do
+	  echo "%{_bindir}/$(basename $binary)"
+	done )
+
+fi
+
+LICENSE=$( echo "$JSONDESC"   | egrep -i '"license"\s*:' | cut -d ":" -f 2 |tr -d '", ')
+if [ "$LICENSE" == "" ]
+then
+ # try to guess the license
+ LICENSE=$( echo "$LICENSEDESC" | head -n 1 | egrep -E -i -o "Apache\s+\w|ASL\s+\w+(.\w)?|MIT|L?GPL\s+\w+(.\w)?|BSD" )
+ if [ "$LICENSE" == "" ]
+ then
+  # unable to guess the license.. well quit and assume "unknown"
+  LICENSE="unknown"
+ fi
+fi
+
+
+DESCRIPTION=$(echo "$JSONDESC"  | egrep -i '"description"\s*:' | cut -d ":" -f 2 | egrep -o '".*"'| tr -d '"' )
+SUMMARY=$(echo "$DESCRIPTION" | head -n 1)
+PROJECTURL=$(echo "$JSONDESC"  |grep repository -m 1 -A 20 | grep "}" -m 1 -B 10 | grep url  | cut -d ":" -f 2- |tr -d '", ')
+if [ "$PROJECTURL" == "" ]
+then
+ PROJECTURL="unknown"
+fi
+#NODEJSREQ=$(echo "$JSONDESC"  |grep engines -m 1 -A 20 | grep "}" -m 1 -B 10 | grep node   | cut -d ":" -f 2 |tr -d '", ')
+
+PROVIDES=""
+REQUIRES=""
+SYMLINKDEPS=""
+PREFIX=""
+
+if [ "$TYPE" == "bundle" ]
+then
+ pushd .
+ TMPDIR=/tmp/npm.$(date +%s)
+ mkdir -p $TMPDIR
+ cd $TMPDIR
+ npm install $NAME@$VERSION
+ cd node_modules
+ mv $NAME package
+ tar zcvf $NAME-$VERSION.tgz package
+ BUNDLEDMODULES=$(find package/node_modules/ -type f -name package.json -exec sh -c "echo -n 'bundled-npm('; dirname {} | tr '/' \"\n\" |tac |head -n 1 | tr -d \"\n\" ; echo -n ') = ' ; grep '\"version\":' {} |  egrep -o '[0-9.]+' " \; )
+ mv $NAME-$VERSION.tgz $SOURCESDIR
+ rm -rf $TMPDIR
+ popd
+ FILESTOCOPY="$FILESTOCOPY node_modules"
+ PROVIDES=$(echo "$BUNDLEDMODULES" | while read -r module
+ do
+  echo Provides: $module
+ done )
+ PROVIDES=$(echo -e "$PROVIDES\nProvides: npm($NAME) = $VERSION")
+ REQUIRES="Requires: nodejs(engine)"
+ PREFIX="bundle-"
+else
+ # usar o .tgz original
+ mv $TGZ $SOURCESDIR
+ SYMLINKDEPS="%nodejs_symlink_deps"
+ PROVIDES="%{?nodejs_find_provides_and_requires}"
+fi
+
+build_spec $TEMPLATEFILE
+
+# create .spec always
+echo "$SPECTEMPLATE" > $SPECSDIR/$SPECFILE
+
+if [ "$OUTPUT" == "spec" ] 
+then
+ echo "created $SPECSDIR/$SPECFILE"
+ exit
+elif [ "$OUTPUT" == "rpm" ] 
+then
+ rpmbuild --define "_topdir $RPMTOPDIR" --nodeps -bb $SPECSDIR/$SPECFILE
+fi
+
