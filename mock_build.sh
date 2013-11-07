@@ -2,7 +2,7 @@
 
 #CONFIGS="epel-5-i386 epel-6-i386"
 CONFIGS="ptin-5-i386 ptin-6-i386"
-TMPDIR=n2r$(date +%s)
+TMPDIR=njs2rpm$(date +%s)
 EPELPKGURL=http://ftp.tu-chemnitz.de/pub/linux/fedora-epel/5/i386/epel-release-5-4.noarch.rpm
 
 function cleanup {

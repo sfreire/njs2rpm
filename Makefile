@@ -1,5 +1,5 @@
 VERSION=1.0.0
-NAME=n2r
+NAME=njs2rpm
 RPMTOPDIR=`pwd`/rpmbuild
 
 all: clean dist

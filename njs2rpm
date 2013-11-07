@@ -5,7 +5,7 @@
 # More info at https://github.com/sfreire/n2r
 
 MYVERSION=1.0.0
-echo -e "N2R v$MYVERSION - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>"
+echo -e "NJS2RPM v$MYVERSION - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>"
 
 SCRIPTNAME=$(basename $0)
 # obtain install directory, resolving symlinks if necessary

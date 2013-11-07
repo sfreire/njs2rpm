@@ -4,16 +4,17 @@
 %define debug_package %{nil}
 %define prefix /opt/ptin
 %define _prefix %{prefix}/%{name}
+%define _docdir %{prefix}/%{name}/doc
 
 
-Name    : n2r
+Name    : njs2rpm
 Version : 1.0.0
-Release : 2.%{disttype}%{distnum}
-Summary: N2R - convert NodeJS module to RPM
+Release : 3.%{disttype}%{distnum}
+Summary: NJS2RPM - convert NodeJS module to RPM
 Group: Development/Libraries
 License: LGPLv2+
 Source: %{name}-%{version}.tar.gz
-URL: https://github.com/sfreire/n2r
+URL: https://github.com/sfreire/njs2rpm
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 Requires: redhat-rpm-config, tar, coreutils, wget, nodejs-packaging, nodejs-devel, npm
@@ -30,9 +31,11 @@ NodeJS module to RPM packager
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/%{_prefix}/bin
-cp n2r %{buildroot}/%{_prefix}/bin
+mkdir -p %{buildroot}/%{_docdir}
+cp njs2rpm %{buildroot}/%{_prefix}/bin
 cp default.n2r  %{buildroot}/%{_prefix}/bin
-ln -s %{_prefix}/bin/n2r %{buildroot}/usr/bin/n2r
+cp *.md LICENSE %{buildroot}/%{_docdir}
+ln -s %{_prefix}/bin/njs2rpm %{buildroot}/usr/bin/njs2rpm
 
 %clean
 rm -rf %{buildroot}
@@ -47,8 +50,13 @@ rm -rf %{buildroot}
 %defattr (0755,root,root,0755)
 %dir %{_prefix}/bin
 %{_prefix}/bin/*
-/usr/bin/n2r
+/usr/bin/njs2rpm
+%{_docdir}/README.md
+%{_docdir}/LICENSE
 
 %changelog
+* Thu Nov  7 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-3
+- change name from n2r to njs2rpm
+- included LICENSE
 * Wed Nov  6 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-2
 - first public release, compatible with RHEL5 and RHEL6
