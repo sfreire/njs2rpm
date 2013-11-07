@@ -131,7 +131,6 @@ The dependency problem arises when some module, at some level, requires some oth
     ├── commander@1.3.2 (keypress@0.1.0)
     └── connect@2.11.0 (methods@0.0.1, uid2@0.0.3, pause@0.0.1, raw-body@0.0.3, qs@0.6.5, bytes@0.2.1, negotiator@0.3.0, multiparty@2.2.0)
 
-
 ## Rationale
 
 Fedora/RedHat typical approach is [not to bundle dependencies](https://fedoraproject.org/wiki/Packaging:No_Bundled_Libraries) in any of its packages, with some exceptions if justified.
@@ -142,7 +141,20 @@ As seen earlier with the "express" framework example, we need another way of bui
 A "bundle" package solves the problem by containing all dependencies of the given module. Basically, it follows the same principle used whenever installing Node modules with "npm install ...".
 A "bundle" package does not expose the bundled dependencies as typical "npm(<module_name>)" Provides in the RPM, since the bundled modules cannot be used by third party apps or modules. Nevertheless, in order to not make things obscure and make clear what are the bundled dependent modules and their respective versions, all these modules are "visible" as Provides using the "bundled-..." prefix (e.g. "bundled-npm(methods) = 0.1.0"). Note that an app or modules MUST NOT require these type of dependencies.
  
+### Summary
 
+    +--------+----------------------+---------------------+-----------------------------+
+    |  Type  |       RPM name       |      Provides       |          Requires           |
+    +--------+----------------------+---------------------+-----------------------------+
+    | Single | nodejs-<name>        | npm(<name>)         | npm(<dep1>)                 |
+    |        |                      |                     | ...                         |
+    |        |                      |                     | npm(<depM>)                 |
+    | Bundle | nodejs-bundle-<name> | npm(<name>)         | (no deps as Requires)       |
+    |        |                      |                     |                             |
+    |        |                      | bundled-npm(<dep1>) |                             |
+    |        |                      | ...                 |                             |
+    |        |                      | bundled-npm(<depN>) |                             |
+    +--------+----------------------+---------------------+-----------------------------+
 
 ## Examples
 
