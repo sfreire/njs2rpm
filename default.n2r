@@ -51,6 +51,6 @@ $FILESBINSNIPPET
 %doc $DOCFILES
 
 %changelog
-* $DATE Sergio Freire <sergio-s-freire@ptinovacao.pt> - $VERSION-$RELEASE
+* $DATE Built with NJS2RPM <njs2rpm@example.com> - $VERSION-$RELEASE
 - first release
 

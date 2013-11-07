@@ -59,6 +59,7 @@ rm -rf %{buildroot}
 %changelog
 * Thu Nov  7 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-4
 - describe better the package description
+- removed my email from the default template
 * Thu Nov  7 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-3
 - change name from n2r to njs2rpm
 - included LICENSE
