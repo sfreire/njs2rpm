@@ -1,12 +1,41 @@
 njs2rpm
 =======
 
-N2R - convert NodeJS modules to RPM packages
+NJS2RPM - convert NodeJS modules to RPM packages (by Sergio Freire)
 
 
-## The problem
+## Features
+- supports RHEL6 and RHEL5/Centos5 (yes, RHEL5!) - runs and build RPM packages on these systems
+- simple creation of RPM obtaining sources directly from [NPM Registry](npmjs.org), of any package and version available
+- does not require Perl, Python, Ruby and a bulk of dependencies in order to run! It's made in shell script: "BASH" to the rescue!
+- supports packaging guidelines used in Fedora/EPEL (and upcoming RedHat versions) for building clean ("single") packages
+- supports the creation of "bundle" packages with all dependencies pre-bundled, overcoming the "limitation" of some modules with dependency problems!
+- supports RPM (or .spec) creation based on template files in order to customized the generated RPM
+
+     Examples:
+            njs2rpm uglify-js 2.4.1 1 single rpm
+            njs2rpm uglify-js 2.4.1 1 bundle rpm
+            njs2rpm express 3.4.4 1 bundle spec mytemplate.n2r
 
 
+## Syntax
+
+    NJS2RPM v1.0.0 - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>
+     Usage: njs2rpm <name> <version> <release> <single|bundle> <spec|rpm> [template]
+            name: NodeJS module name
+            version: module version in X.Y.Z format
+            release: RPM's release
+            single: just package the module and not its dependencies (RH behaviour)
+            bundle: bundle all dependencies inside the module
+            spec: just create the .spec file
+            rpm: create the .spec and the RPM file(s)
+            template (optional): RPM .spec template to use; by default, provided default.n2r
+
+
+
+## The dependencies problem
+
+Bellow, you can see the "express" framework installed locally using "npm install express". It's clear that "express" requires a lot of modules, a few directly and a lot of them indirectly (i.e. modules that require some other modules, so on, so on).
 
     $ tree -d
     .
@@ -82,7 +111,9 @@ N2R - convert NodeJS modules to RPM packages
                         └── types
     70 directories
      
-    ===================================================================================================
+
+The dependency problem arises when some module, at some level, requires some other module in a conflicting version. Looking a bit further at "express" v3.4.4 once again, it can be seen that "express" directly requires "methods=v0.1.0". But "connect", which is also a direct dependency, requires "methods=v0.0.1)". This is just an example, which may be HUGE whenever using lots of modules in your NodeJS apps. If we tried to follow the typical RedHat guidelines for packaging "express v3.4.4", it simply would not be possible to install "express" (unless we patched it manually and correctly... and tested it!).
+
      express@3.4.4 node_modules/express
     ├── methods@0.1.0
     ├── cookie-signature@1.0.1
@@ -103,17 +134,24 @@ Fedora/RedHat typical approach is not to bundle dependencies in any of its packa
 Therefore, a module that depends on some other module will explicitly declare it as Requires in the RPM .spec file. This means that every NodeJS module packaged as RPM will just have their own files and require all dependencies, that must be installed in the system globally, each one as a package.
 NodeJS community approach is quite different (see [NPM Faq](https://npmjs.org/doc/faq.html#I-installed-something-globally-but-I-can-t-require-it) ): every dependency should be installed locally, inside the application/module, meaning that dependencies are autocontained.
 
-t
-
-Contudo, tal como é visível no exemplo anterior, nem sempre é possível instalar um módulo de forma "limpa" dado que as dependências aos vários níveis podem colidir entre si. Assim, sugere-se a criação de pacotes do tipo "bundle" em que um módulo inclui todas as suas dependências, emitando assim o comportamento duma instalação autocontida usando o comado "npm". O pacote "bundle" ainda que não exponha as dependências embebidas, enumera-as nos Provides do RPM usando o prefixo "bundled-" para se conseguir identificar claramente as versões dos módulos que contém.
-
+As seen earlier with the "express" framework example, we need another way of building RPM packages for NodeJS modules. Thus, the "bundle" packaging is introduced.
+A "bundle" package solves the problem by containing all dependencies of the given module. Basically, it follows the same principle used whenever installing Node modules with "npm install ...".
+A "bundle" package does not expose the bundled dependencies as typical "npm(<module_name>)" Provides in the RPM, since the bundled modules cannot be used by third party apps or modules. Nevertheless, in order to not make things obscure and make clear what are the bundled dependent modules and their respective versions, all these modules are "visible" as Provides using the "bundled-..." prefix (e.g. "bundled-npm(methods) = 0.1.0"). Note that an app or modules MUST NOT require these type of dependencies.
  
 
 
 ## Examples
 
+### single package
 
+    $ rpm --provides -qp /home/sergio/rpmbuild/RPMS/noarch/nodejs-express-3.4.4-1.el6.noarch.rpm
+    
+    npm(express) = 3.4.4
+    nodejs-express = 3.4.4-1.el6
+    
+    
     $ rpm --requires -qp /home/sergio/rpmbuild/RPMS/noarch/nodejs-express-3.4.4-1.el6.noarch.rpm
+    
     rpmlib(FileDigests) <= 4.6.0-1
     rpmlib(PayloadFilesHavePrefix) <= 4.0-1
     rpmlib(CompressedFileNames) <= 3.0.4-1
@@ -133,27 +171,35 @@ Contudo, tal como é visível no exemplo anterior, nem sempre é possível insta
     /usr/bin/env
     rpmlib(PayloadIsXz) <= 5.2-1
     
-    $ rpm --provides -qp /home/sergio/rpmbuild/RPMS/noarch/nodejs-express-3.4.4-1.el6.noarch.rpm
-    npm(express) = 3.4.4
-    nodejs-express = 3.4.4-1.el6
 
-## Syntax
 
-    NJS2RPM v1.0.0 - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>
-     Usage: njs2rpm <name> <version> <release> <single|bundle> <spec|rpm> [template]
-            name: NodeJS module name
-            version: module version in X.Y.Z format
-            release: RPM's release
-            single: just package the module and not its dependencies (RH behaviour)
-            bundle: bundle all dependencies inside the module
-            spec: just create the .spec file
-            rpm: create the .spec and the RPM file(s)
-            template (optional): RPM .spec template to use; by default, provided default.n2r
-     Examples:
-            njs2rpm uglify-js 2.4.1 1 single rpm
-            njs2rpm uglify-js 2.4.1 1 bundle rpm
-            njs2rpm express 3.4.4 1 bundle spec mytemplate.n2r
+### bundle package
 
+    $ rpm --provides  -q nodejs-bundle-uglify-js
+    
+    bundled-npm(amdefine) = 0.1.0
+    bundled-npm(async) = 0.2.9
+    bundled-npm(optimist) = 0.3.7
+    bundled-npm(source-map) = 0.1.31
+    bundled-npm(uglify-to-browserify) = 1.0.1
+    bundled-npm(wordwrap) = 0.0.2
+    npm(uglify-js) = 2.4.1
+    nodejs-bundle-uglify-js = 2.4.1-1.ptin.el6
+    
+    
+    $ rpm --requires  -q nodejs-bundle-uglify-js
+    
+    /usr/bin/env
+    nodejs(engine)
+    rpmlib(CompressedFileNames) <= 3.0.4-1
+    rpmlib(FileDigests) <= 4.6.0-1
+    rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+    rpmlib(VersionedDependencies) <= 3.0.3-1
+    rpmlib(PayloadIsXz) <= 5.2-1
+
+
+## Unsupported
+- creation of native/linked modules (yet!)
 
 ## References
 - https://fedoraproject.org/wiki/Packaging:Node.js
