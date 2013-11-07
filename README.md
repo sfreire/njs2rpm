@@ -17,9 +17,9 @@ No more NodeJS modules installed ad-hoc using "npm".
 - supports RPM (or .spec) creation based on template files in order to customized the generated RPM
 
      Examples:
-            njs2rpm uglify-js 2.4.1 1 single rpm
-            njs2rpm uglify-js 2.4.1 1 bundle rpm
-            njs2rpm express 3.4.4 1 bundle spec mytemplate.n2r
+        njs2rpm uglify-js 2.4.1 1 single rpm
+		njs2rpm uglify-js 2.4.1 1 bundle rpm
+        njs2rpm express 3.4.4 1 bundle spec mytemplate.n2r
 
 
 ## Syntax
