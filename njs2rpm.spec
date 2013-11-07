@@ -9,7 +9,7 @@
 
 Name    : njs2rpm
 Version : 1.0.0
-Release : 3.%{disttype}%{distnum}
+Release : 4.%{disttype}%{distnum}
 Summary: NJS2RPM - convert NodeJS module to RPM
 Group: Development/Libraries
 License: LGPLv2+
@@ -20,7 +20,9 @@ BuildArch: noarch
 Requires: redhat-rpm-config, tar, coreutils, wget, nodejs-packaging, nodejs-devel, npm
 
 %description 
-NodeJS module to RPM packager
+NJS2RPM - convert NodeJS modules to RPM packages (by Sergio Freire)
+A simple Bash script to build RPMs of any available NodeJS module, any version. It fetches the source from NPM Registry and builds the RPM. Simple, isn't it?
+No more NodeJS modules installed ad-hoc using "npm".
 
 %prep
 %setup
@@ -55,6 +57,8 @@ rm -rf %{buildroot}
 %{_docdir}/LICENSE
 
 %changelog
+* Thu Nov  7 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-4
+- describe better the package description
 * Thu Nov  7 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-3
 - change name from n2r to njs2rpm
 - included LICENSE
