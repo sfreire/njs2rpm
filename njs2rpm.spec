@@ -8,8 +8,8 @@
 
 
 Name    : njs2rpm
-Version : 1.0.0
-Release : 4.%{disttype}%{distnum}
+Version : 1.0.1
+Release : 1.%{disttype}%{distnum}
 Summary: NJS2RPM - convert NodeJS module to RPM
 Group: Development/Libraries
 License: LGPLv2+
@@ -57,6 +57,10 @@ rm -rf %{buildroot}
 %{_docdir}/LICENSE
 
 %changelog
+* Thu Nov  8 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.1-1
+- changed default template so RPM macro _rpmconfigdir points to 32 bit libs diretory. have to fix this better
+- disabled debuginfo packages on default template
+- avoid stderr messages of tar in RHEL5
 * Thu Nov  7 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.0-4
 - describe better the package description
 - removed my email from the default template

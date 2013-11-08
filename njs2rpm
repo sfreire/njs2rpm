@@ -4,7 +4,7 @@
 # Copyright Sergio Freire <sergio-s-freire@ptinovacao.pt>
 # More info at https://github.com/sfreire/n2r
 
-MYVERSION=1.0.0
+MYVERSION=1.0.1
 echo -e "NJS2RPM v$MYVERSION - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>"
 
 SCRIPTNAME=$(basename $0)
@@ -116,7 +116,7 @@ LICENSEFILE=$(tar tlf $TGZ 2> /dev/null| egrep -i "^package/license")
 LICENSEDESC=$(tar -xOzf $TGZ $LICENSEFILE 2> /dev/null)
 
 DOCFILES=$(tar tlf $TGZ 2> /dev/null | egrep -i "readme|license|\.md|\.txt" | egrep -v "/.*/" | cut -d "/" -f 2 | tr "\n" " ")
-tar tlf $TGZ | egrep -i "\.c$|.cpp$|\.h$"  > /dev/null 2>&1
+tar tlf $TGZ 2> /dev/null | egrep -i "\.c$|.cpp$|\.h$"  > /dev/null 2>&1
 NATIVE=$?
 if [ $NATIVE -eq 0 ]
 then
@@ -124,7 +124,7 @@ then
 	exit 1
 fi
 
-tar tlf $TGZ | egrep  "^package/bin/"  > /dev/null 2>&1
+tar tlf $TGZ 2> /dev/null | egrep  "^package/bin/"  > /dev/null 2>&1
 HASBINARIES=$?
 BINSNIPPET=""
 FILESBINSNIPPET=""

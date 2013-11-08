@@ -1,5 +1,7 @@
 %define dist %{expand:%%(/usr/lib/rpm/redhat/dist.sh --dist)}
-%define _rpmconfigdir %{_libdir}/rpm
+#%define _rpmconfigdir %{_libdir}/rpm
+%define _rpmconfigdir %{_prefix}/lib/rpm
+%define debug_package %{nil}
 
 $PROVIDES
 

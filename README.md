@@ -25,7 +25,7 @@ Examples:
 
 ## Syntax
 
-    NJS2RPM v1.0.0 - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>
+    NJS2RPM v1.0.1 - NodeJs module to RPM converter by Sergio Freire <sergio-s-freire@ptinovacao.pt>
      Usage: njs2rpm <name> <version> <release> <single|bundle> <spec|rpm> [template]
             name: NodeJS module name
             version: module version in X.Y.Z format
