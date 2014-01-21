@@ -8,7 +8,7 @@
 
 
 Name    : njs2rpm
-Version : 1.0.1
+Version : 1.0.2
 Release : 1.%{disttype}%{distnum}
 Summary: NJS2RPM - convert NodeJS module to RPM
 Group: Development/Libraries
@@ -57,6 +57,8 @@ rm -rf %{buildroot}
 %{_docdir}/LICENSE
 
 %changelog
+* Tue Jan 21 2014 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.2-1
+- fixed issue #1 (problem with user defined _topdir)
 * Thu Nov  8 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.1-1
 - changed default template so RPM macro _rpmconfigdir points to 32 bit libs diretory. have to fix this better
 - disabled debuginfo packages on default template
