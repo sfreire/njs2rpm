@@ -87,8 +87,8 @@ fi
 
 TGZ=$NAME-$VERSION.tgz
 URL=http://registry.npmjs.org/$NAME/-/$TGZ
-RPMTOPDIR=$(cat ~/.rpmmacros 2> /dev/null| grep _topdir | cut -d " " -f 2 2> /dev/null)
-#RPMTOPDIR=$(rpm --eval "%_topdir")
+RPMTOPDIRVAL=$(cat ~/.rpmmacros 2> /dev/null| grep _topdir | cut -d " " -f 2- 2> /dev/null)
+RPMTOPDIR=$(rpm --eval "$RPMTOPDIRVAL" 2> /dev/null)
 if [ "$RPMTOPDIR" == "" ]
 then
  RPMTOPDIR=$(pwd)/rpmbuild
