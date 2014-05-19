@@ -8,7 +8,7 @@
 
 
 Name    : njs2rpm
-Version : 1.0.2
+Version : 1.0.3
 Release : 1.%{disttype}%{distnum}
 Summary: NJS2RPM - convert NodeJS module to RPM
 Group: Development/Libraries
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 %{_docdir}/LICENSE
 
 %changelog
+* Mon May 19 2014 JM Goncalves <joao-m-goncalves@telecom.pt> - 1.0.3-1
+- added rpm-build to Requires
+- fixed egrep multi-match in license retrieval (caused problems with MIT License)
 * Tue Jan 21 2014 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.2-1
 - fixed issue #1 (problem with user defined _topdir)
 * Thu Nov  8 2013 Sergio Freire <sergio-s-freire@ptinovacao.pt> - 1.0.1-1
