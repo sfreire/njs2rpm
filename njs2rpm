@@ -147,7 +147,7 @@ LICENSE=$( echo "$JSONDESC"   | egrep -i '"license"\s*:' | cut -d ":" -f 2 |tr -
 if [ "$LICENSE" == "" ]
 then
  # try to guess the license
- LICENSE=$( echo "$LICENSEDESC" | head -n 1 | egrep -E -i -o "Apache\s+\w|ASL\s+\w+(.\w)?|MIT|L?GPL\s+\w+(.\w)?|BSD" )
+ LICENSE=$( echo "$LICENSEDESC" | head -n 1 | egrep -E -i -o "Apache\s+\w|ASL\s+\w+(.\w)?|MIT|L?GPL\s+\w+(.\w)?|BSD" | head -n 1 )
  if [ "$LICENSE" == "" ]
  then
   # unable to guess the license.. well quit and assume "unknown"

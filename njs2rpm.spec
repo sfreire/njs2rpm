@@ -17,7 +17,7 @@ Source: %{name}-%{version}.tar.gz
 URL: https://github.com/sfreire/njs2rpm
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
-Requires: redhat-rpm-config, tar, coreutils, wget, nodejs-packaging, nodejs-devel, npm
+Requires: redhat-rpm-config, tar, coreutils, wget, nodejs-packaging, nodejs-devel, npm, rpm-build
 
 %description 
 NJS2RPM - convert NodeJS modules to RPM packages (by Sergio Freire)
