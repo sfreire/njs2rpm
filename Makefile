@@ -8,7 +8,7 @@ dist:
 	rm -f $(NAME)-$(VERSION).tar.gz;\
 	rm -rf $(NAME)-$(VERSION);\
 	mkdir $(NAME)-$(VERSION); \
-	tar -c --exclude ".svn" --exclude "$(NAME)-$(VERSION)" --exclude "rpmbuild" . | tar -x -C $(NAME)-$(VERSION);\
+	tar -c --exclude ".svn" --exclude "$(NAME)-$(VERSION)" --exclude "rpmbuild" --exclude ".git" . | tar -x -C $(NAME)-$(VERSION);\
 	tar -czvf $(NAME)-$(VERSION).tar.gz  $(NAME)-$(VERSION);\
 	rm -rf $(NAME)-$(VERSION)
 clean:
